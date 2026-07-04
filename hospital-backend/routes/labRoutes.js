@@ -1,0 +1,12 @@
+import express from 'express';
+import { addLabTest, getAllLabTests, orderLabTests, updateLabResults, getLabReportById, getLabReports, updateReportStatus } from '../controllers/labController.js';
+import { protect, authorize } from '../middleware/auth.js';
+const router = express.Router();
+router.get('/tests', getAllLabTests);
+router.post('/tests', protect, authorize('admin'), addLabTest);
+router.post('/reports', protect, authorize('doctor'), orderLabTests);
+router.get('/reports', protect, getLabReports);
+router.get('/reports/:id', protect, getLabReportById);
+router.put('/reports/:id/results', protect, authorize('admin'), updateLabResults);
+router.put('/reports/:id/status', protect, authorize('admin'), updateReportStatus);
+export default router;

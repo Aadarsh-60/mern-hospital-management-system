@@ -1,0 +1,17 @@
+{
+  "name": "hospital-management-system",
+  "version": "1.0.0",
+  "description": "Hospital Management System Root",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "cd hospital-backend && npm start",
+    "build": "cd hospital-frontend && npm install && npm run build && cd ../hospital-backend && npm install",
+    "server": "cd hospital-backend && npm run dev",
+    "client": "cd hospital-frontend && npm run dev",
+    "install-all": "npm install && cd hospital-backend && npm install && cd ../hospital-frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
