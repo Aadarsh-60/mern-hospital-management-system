@@ -47,8 +47,39 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // preflight for all routes
 app.use(helmet({
   crossOriginResourcePolicy: false,
-  crossOriginOpenerPolicy: false,
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://accounts.google.com",
+        "https://apis.google.com",
+        "https://www.gstatic.com",
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://accounts.google.com",
+        "https://fonts.googleapis.com",
+      ],
+      frameSrc: [
+        "'self'",
+        "https://accounts.google.com",
+        "https://www.google.com",
+      ],
+      connectSrc: [
+        "'self'",
+        "https://accounts.google.com",
+        "https://oauth2.googleapis.com",
+        "https://www.googleapis.com",
+      ],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    },
+  },
 }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 500, message: 'Too many requests, try again later.' }));
 
