@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -18,6 +18,7 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
+  const [googleRole, setGoogleRole] = useState('patient');
   const { login, setAuthData } = useAuth();
   const navigate = useNavigate();
 
@@ -25,7 +26,7 @@ export default function Login() {
     try {
       setLoading(true);
       const { googleAuthAPI } = await import('../../services/api');
-      const res = await googleAuthAPI({ idToken: credentialResponse.credential, role: 'patient' });
+      const res = await googleAuthAPI({ idToken: credentialResponse.credential, role: googleRole });
       toast.success('Google Login successful!');
       setAuthData(res.data.token, res.data.user);
       navigate('/dashboard');
@@ -145,7 +146,24 @@ export default function Login() {
               </button>
             )}
           </form>
-          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', width: '100%' }}>
+          <div className="or-divider">or continue with Google</div>
+          <div className="google-auth-section">
+            <div className="google-role-selector">
+              <label htmlFor="google-role">Login as:</label>
+              <div className="select-wrap">
+                <select
+                  id="google-role"
+                  value={googleRole}
+                  onChange={(e) => setGoogleRole(e.target.value)}
+                >
+                  <option value="patient">🧑 Patient</option>
+                  <option value="doctor">👨‍⚕️ Doctor</option>
+                  <option value="admin">🛡️ Admin</option>
+                  <option value="receptionist">💼 Receptionist</option>
+                </select>
+                <ChevronDown size={14} className="select-icon" />
+              </div>
+            </div>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => toast.error('Google Login Failed')}
@@ -153,7 +171,7 @@ export default function Login() {
               shape="rectangular"
               size="large"
               text="continue_with_google"
-              width="300px"
+              width="300"
             />
           </div>
           <p className="login-footer">

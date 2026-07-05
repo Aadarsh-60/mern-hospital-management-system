@@ -88,6 +88,34 @@ input, select, textarea { font-family: inherit; outline: none; }
 .login-footer { text-align: center; margin-top: 24px; font-size: .85rem; color: var(--text-light); }
 .login-footer a { color: var(--blue); font-weight: 600; }
 
+/* ─── GOOGLE AUTH SECTION ─── */
+.google-auth-section { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 4px; }
+.google-role-selector { display: flex; align-items: center; gap: 10px; width: 100%; }
+.google-role-selector label { font-size: .85rem; font-weight: 600; color: var(--text); white-space: nowrap; }
+.google-role-selector .select-wrap { position: relative; flex: 1; }
+.google-role-selector .select-wrap select {
+  width: 100%;
+  padding: 10px 32px 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .85rem;
+  font-weight: 500;
+  background: white;
+  appearance: none;
+  cursor: pointer;
+  transition: border .2s;
+  color: var(--text);
+}
+.google-role-selector .select-wrap select:focus { border-color: var(--blue); }
+.google-role-selector .select-wrap .select-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  pointer-events: none;
+}
+
 /* ─── DASHBOARD LAYOUT ─── */
 .app-layout { display: flex; min-height: 100vh; }
 
