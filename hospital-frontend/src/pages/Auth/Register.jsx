@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight, Stethoscope, DollarSign, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Register() {
   const [form, setForm] = useState({ name:'', email:'', password:'', role:'patient', phone:'', specialization:'', qualification:'', consultationFee:'' });
@@ -11,6 +12,25 @@ export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
+
+  const handleGoogleRegister = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      const { googleAuthAPI } = await import('../../services/api');
+      const res = await googleAuthAPI({ idToken: credentialResponse.credential, role: form.role, mode: 'register' });
+
+      if (res.data.isNewUser) {
+        toast.success(`✅ ${res.data.message}`, { duration: 5000 });
+        navigate('/login');
+      } else {
+        // Already registered — tell them to login
+        toast('This email is already registered. Please login instead.', { icon: 'ℹ️', duration: 4000 });
+        navigate('/login');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Google registration failed');
+    } finally { setLoading(false); }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,6 +86,21 @@ export default function Register() {
             </>)}
             <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Creating...' : 'Create Account'} <ArrowRight size={18}/></button>
           </form>
+          <div className="or-divider">or register with Google</div>
+          <div className="google-auth-section">
+            <p style={{ fontSize: '.8rem', color: '#64748b', marginBottom: '4px' }}>
+              You will be registered as <strong style={{ textTransform: 'capitalize', color: '#1e293b' }}>{form.role}</strong>
+            </p>
+            <GoogleLogin
+              onSuccess={handleGoogleRegister}
+              onError={() => toast.error('Google Registration Failed')}
+              theme="filled_blue"
+              shape="rectangular"
+              size="large"
+              text="signup_with"
+              width="300"
+            />
+          </div>
           <p className="login-footer">Already have an account? <Link to="/login">Sign in</Link></p>
         </div>
       </div>

@@ -173,19 +173,18 @@ export const login = async (req, res) => {
 // POST /api/auth/google
 export const googleAuth = async (req, res) => {
   try {
-    const { idToken, accessToken, role } = req.body;
+    const { idToken, accessToken, role, mode } = req.body;
+    // mode = 'register' (from Register page) or 'login' (from Login page)
     let payload;
 
     if (accessToken) {
-      // Custom button implicit flow provides access_token
       const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!response.ok) throw new Error('Failed to fetch user info from Google');
       payload = await response.json();
-      payload.email_verified = true; // userinfo api means verified
+      payload.email_verified = true;
     } else if (idToken) {
-      // Verify Google ID token
       const ticket = await googleClient.verifyIdToken({
         idToken,
         audience: process.env.GOOGLE_CLIENT_ID,
@@ -200,7 +199,16 @@ export const googleAuth = async (req, res) => {
     let user = await User.findOne({ $or: [{ googleId }, { email }] });
 
     if (!user) {
-      // New user — register via Google
+      // User does not exist
+      if (mode === 'login') {
+        // Login mode — don't create, tell user to register first
+        return res.status(404).json({
+          success: false,
+          message: 'No account found with this Google email. Please register first.',
+        });
+      }
+
+      // Register mode — create new user
       user = await User.create({
         name,
         email,
@@ -208,19 +216,35 @@ export const googleAuth = async (req, res) => {
         avatar: picture,
         role: role || 'patient',
         authProvider: 'google',
-        isEmailVerified: true, // Google emails are pre-verified
+        isEmailVerified: true,
         isActive: true,
       });
       await createRoleProfile(user, {});
       await sendWelcomeEmail(user);
-    } else {
-      // Existing user — link Google account if not linked
-      if (!user.googleId) {
-        user.googleId = googleId;
-        user.authProvider = 'google';
-        if (!user.avatar) user.avatar = picture;
-        await user.save();
-      }
+
+      return res.status(201).json({
+        success: true,
+        isNewUser: true,
+        message: `Registration successful! You are registered as ${user.role}. Now login with your Google account.`,
+        user: { name: user.name, email: user.email, role: user.role },
+      });
+    }
+
+    // User already exists
+    if (mode === 'register') {
+      // Register mode but user exists — tell them to login
+      return res.status(400).json({
+        success: false,
+        message: 'This email is already registered. Please login instead.',
+      });
+    }
+
+    // Login mode — link Google account if not linked
+    if (!user.googleId) {
+      user.googleId = googleId;
+      user.authProvider = 'google';
+      if (!user.avatar) user.avatar = picture;
+      await user.save();
     }
 
     if (!user.isActive) {
@@ -231,6 +255,7 @@ export const googleAuth = async (req, res) => {
 
     res.json({
       success: true,
+      isNewUser: false,
       message: 'Google login successful',
       token,
       user: { _id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },

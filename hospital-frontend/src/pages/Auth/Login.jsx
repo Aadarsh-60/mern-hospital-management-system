@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ChevronDown } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -18,18 +18,25 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
-  const [googleRole, setGoogleRole] = useState('patient');
   const { login, setAuthData } = useAuth();
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleGoogleLogin = async (credentialResponse) => {
     try {
       setLoading(true);
       const { googleAuthAPI } = await import('../../services/api');
-      const res = await googleAuthAPI({ idToken: credentialResponse.credential, role: googleRole });
-      toast.success('Google Login successful!');
-      setAuthData(res.data.token, res.data.user);
-      navigate('/dashboard');
+      const res = await googleAuthAPI({ idToken: credentialResponse.credential, mode: 'login' });
+
+      if (res.data.isNewUser) {
+        // Not registered yet — send to register page
+        toast('You are not registered yet. Please register first!', { icon: '📝', duration: 4000 });
+        navigate('/register');
+      } else {
+        // Existing user — login directly
+        toast.success('Google Login successful!');
+        setAuthData(res.data.token, res.data.user);
+        navigate('/dashboard');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Google Login failed');
     } finally { setLoading(false); }
@@ -148,29 +155,13 @@ export default function Login() {
           </form>
           <div className="or-divider">or continue with Google</div>
           <div className="google-auth-section">
-            <div className="google-role-selector">
-              <label htmlFor="google-role">Login as:</label>
-              <div className="select-wrap">
-                <select
-                  id="google-role"
-                  value={googleRole}
-                  onChange={(e) => setGoogleRole(e.target.value)}
-                >
-                  <option value="patient">🧑 Patient</option>
-                  <option value="doctor">👨‍⚕️ Doctor</option>
-                  <option value="admin">🛡️ Admin</option>
-                  <option value="receptionist">💼 Receptionist</option>
-                </select>
-                <ChevronDown size={14} className="select-icon" />
-              </div>
-            </div>
             <GoogleLogin
-              onSuccess={handleGoogleSuccess}
+              onSuccess={handleGoogleLogin}
               onError={() => toast.error('Google Login Failed')}
               theme="filled_blue"
               shape="rectangular"
               size="large"
-              text="continue_with_google"
+              text="signin_with"
               width="300"
             />
           </div>
