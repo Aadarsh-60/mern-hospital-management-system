@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # 🏥 MediCare HMS — Hospital Management System
 
@@ -625,4 +625,3 @@ This project is open source and available under the [MIT License](LICENSE).
 Made with ❤️ using the MERN Stack
 
 </div>
-]]>
